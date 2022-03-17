@@ -73,5 +73,10 @@ namespace BNK
             //StringBuilder를 string으로 바꾸는 것이 ToString()
             return report.ToString();
         }
+
+        public virtual void PerformMonthEndTransactions()
+        {
+
+        }
     }
 }
