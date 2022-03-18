@@ -6,7 +6,7 @@ namespace BNK
 {
     internal class LineOfCreditAccount : BankAccount
     {
-        public LineOfCreditAccount(string name, decimal initialBalance) : base(name, initialBalance)
+        public LineOfCreditAccount(string name, decimal initialBalance, decimal creditLimit) : base(name, initialBalance, -creditLimit)
         {
 
         }
@@ -19,5 +19,9 @@ namespace BNK
                 MakeWithdrawal(interest, DateTime.Now, "Charge monthly interest");
             }
         }
+
+        protected override Transaction CheckWithdrawalLimit(bool isOverdrawn) => isOverdrawn
+            ? new Transaction(-20, DateTime.Now, "Apply overdraft fee")
+            : default;
     }
 }

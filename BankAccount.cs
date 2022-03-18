@@ -23,15 +23,27 @@ namespace BNK
 
         private static int accountNumberSeed = 1234567890;
 
+        //readonly를 주면 동일 클래스의 생성자에서만 발생 가능.
+        private readonly decimal _minimumBalance;
+
         private List<Transaction> allTransactions = new List<Transaction>();
 
         //생성자는 new를 사용하여 개체를 만들 때 호출된다.
-        public BankAccount(string name, decimal initialBalance)
+        public BankAccount(string name, decimal initialBalance) : this(name, initialBalance, 0)
+        {
+
+        }
+        public BankAccount(string name, decimal initialBalance, decimal minimumBalance)
         {
             this.Owner = name;
             this.Number = accountNumberSeed.ToString();
-            MakeDeposit(initialBalance, DateTime.Now, "초기 잔액");
+            //MakeDeposit(initialBalance, DateTime.Now, "초기 잔액");
             accountNumberSeed++;
+            _minimumBalance = minimumBalance;
+            if(initialBalance > 0)
+            {
+                MakeDeposit(initialBalance, DateTime.Now, "Initial balance");
+            }
         }
 
         //입금
@@ -51,12 +63,20 @@ namespace BNK
             {
                 throw new ArgumentOutOfRangeException(nameof(amount), "출금금액은 0원 이상이어야 합니다.");
             }
-            if (Balance - amount < 0)
-            {
-                throw new InvalidOperationException("");
-            }
-            var withdrawal = new Transaction(-amount, date, note);
+            //if (Balance - amount < _minimumBalance)
+            //{
+            //    throw new InvalidOperationException("Not sufficient funds for this withdrawal");
+            //}
+            //var withdrawal = new Transaction(-amount, date, note);
+            //allTransactions.Add(withdrawal);
+            Transaction? overdraftTransaction = CheckWithdrawalLimit(Balance - amount < _minimumBalance);
+            //74번째 줄 new(-amount, date, note)로 되어있음.. 이유 알아낼 것!
+            Transaction? withdrawal = new Transaction(-amount, date, note);
             allTransactions.Add(withdrawal);
+            if(overdraftTransaction != null)
+            {
+                allTransactions.Add(overdraftTransaction);
+            }
         }
 
         public string GetAccountHistory()
@@ -77,6 +97,18 @@ namespace BNK
         public virtual void PerformMonthEndTransactions()
         {
 
+        }
+
+        protected virtual Transaction? CheckWithdrawalLimit(bool isOverdrawn)
+        {
+            if(isOverdrawn)
+            {
+                throw new InvalidOperationException("Not sufficient funds for this withdrawal");
+            }
+            else
+            {
+                return default;
+            }
         }
     }
 }
